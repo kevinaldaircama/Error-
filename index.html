@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login VIP</title>
+  <link rel="icon" href="3440119_ico.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <link rel="icon" type="image/png" href="3440119_ico.png">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -49,14 +53,14 @@
 <body>
   <form id="loginForm">
     <h2 style="text-align:center;">Iniciar sesión VIP</h2>
-    <input type="email" placeholder="Correo electrónico" id="email" required>
+    <input type="text" placeholder="Usuario" id="usuario" required>
     <input type="password" placeholder="Contraseña" id="password" required>
     <button type="submit">Entrar</button>
   </form>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOIyyPWVXWq0X3btLYM4PFaaadZuXW3pU",
@@ -68,19 +72,28 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const form = document.getElementById("loginForm");
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("email").value;
+      const usuario = document.getElementById("usuario").value;
       const password = document.getElementById("password").value;
 
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "curso.html"; // redirige a cursos
-      } catch (err) {
-        alert("Usuario o contraseña incorrecta");
+      // Comprobar usuario y contraseña en Firestore
+      const snap = await getDoc(doc(db, "usuariosVIP", usuario));
+      if (!snap.exists()) {
+        alert("Usuario no encontrado");
+        return;
+      }
+
+      const data = snap.data();
+      if (data.password === password) {
+        // Guardamos en localStorage que está logueado
+        localStorage.setItem("vipUser", usuario);
+        window.location.href = "curso";
+      } else {
+        alert("Contraseña incorrecta");
       }
     });
   </script>
