@@ -1,42 +1,48 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Contenido VIP</title>
+<link rel="icon" href="3440119_ico.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <link rel="icon" type="image/png" href="3440119_ico.png">
 <style>
-  body { font-family: Arial, sans-serif; background: #1e1e2f; color: white; margin: 0; }
-  header { background: #2c2c3c; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; flex-wrap: wrap; }
-  header h1 { font-size: 1.5em; margin: 0; }
-  button { background: #8b5cf6; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-  .container { padding: 20px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-  .card { background: #2c2c3c; border-radius: 10px; overflow: hidden; color: white; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform 0.2s; }
-  .card:hover { transform: translateY(-5px); }
-  .card img { width: 100%; height: 180px; object-fit: cover; }
-  .card-content { padding: 10px 15px; }
-  .card-content h3 { margin: 0; font-size: 18px; }
-  .card-content span { display: inline-block; margin-top: 5px; color: #8b5cf6; font-weight: bold; }
-  @media (max-width: 400px) { .grid { grid-template-columns: 1fr; } }
+body { font-family: Arial,sans-serif; background:#1e1e2f; color:white; margin:0; }
+header { background:#2c2c3c; display:flex; justify-content:space-between; align-items:center; padding:10px 20px; }
+header h1 { font-size:1.5em; margin:0; }
+button { background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; }
+.container { padding:20px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:15px; }
+.card { background:#2c2c3c; border-radius:10px; overflow:hidden; color:white; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.card img { width:100%; height:180px; object-fit:cover;}
+.card-content { padding:10px 15px;}
+.card-content h3 { margin:0; font-size:18px;}
+.card-content span { display:inline-block; margin-top:5px; color:#8b5cf6; font-weight:bold;}
+@media(max-width: 500px){
+  .grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <header>
-  <h1>Contenido VIP</h1>
-  <button onclick="window.location.href='/'">Cerrar sesión</button>
+<h1>Contenido VIP</h1>
+<button onclick="logout()">Cerrar sesión</button>
 </header>
+
 <div class="container">
   <div class="grid" id="gridCursos"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBOIyyPWVXWq0X3btLYM4PFaaadZuXW3pU",
   authDomain: "clientes-c459e.firebaseapp.com",
+  databaseURL: "https://clientes-c459e-default-rtdb.firebaseio.com",
   projectId: "clientes-c459e",
   storageBucket: "clientes-c459e.firebasestorage.app",
   messagingSenderId: "347844392001",
@@ -44,38 +50,49 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
+const db = getDatabase(app);
 const grid = document.getElementById("gridCursos");
 
-// Verificar si está logueado
-onAuthStateChanged(auth, user => {
-  if (!user) window.location.href = "/";
-});
+// ✅ Proteger acceso
+if (!localStorage.getItem("usuarioLogueado")) {
+  localStorage.setItem("redirectCurso", window.location.href);
+  window.location.href = "login.html";
+} else {
+  cargarCursos();
+}
 
 async function cargarCursos() {
-  const snapshot = await getDocs(collection(db, "contenido"));
-  if (snapshot.empty) {
+  const dbRef = ref(db);
+  const snapshot = await get(child(dbRef, 'contenido')); // Aquí 'contenido' es tu nodo
+
+  if (!snapshot.exists()) {
     grid.innerHTML = "<p>No hay contenido disponible.</p>";
     return;
   }
-  snapshot.forEach(doc => {
-    const data = doc.data();
+
+  const data = snapshot.val();
+  Object.keys(data).forEach(key => {
+    const curso = data[key];
     const card = document.createElement("a");
-    card.href = `tutorial.html?id=${doc.id}`;
+    card.href = `video.html?id=${key}`;
     card.className = "card";
     card.innerHTML = `
-      <img src="${data.imagen}" alt="${data.titulo}">
+      <img src="${curso.imagen}" alt="${curso.titulo}">
       <div class="card-content">
-        <h3>${data.titulo}</h3>
-        <span>${data.boton || "Ver ahora"}</span>
+        <h3>${curso.titulo}</h3>
+        <span>${curso.boton || "Ver ahora"}</span>
       </div>
     `;
     grid.appendChild(card);
   });
 }
-cargarCursos();
+
+// Cerrar sesión
+function logout() {
+  localStorage.removeItem("usuarioLogueado");
+  window.location.href = "login.html";
+}
+window.logout = logout;
 </script>
 </body>
 </html>

@@ -1,30 +1,79 @@
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Tutorial VIP</title>
+<link rel="icon" href="3440119_ico.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <link rel="icon" type="image/png" href="3440119_ico.png">
 <style>
-  body { font-family: Arial, sans-serif; background: #1e1e2f; color: white; margin: 0; text-align: center; }
-  header { background: #2c2c3c; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-  header h2 { margin: 0; font-size: 20px; }
-  button { background: #8b5cf6; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-  .content { padding: 20px; }
-  .video-container { background: #2c2c3c; border-radius: 12px; padding: 15px; max-width: 800px; margin: 0 auto; }
-  video { width: 100%; border-radius: 8px; }
-  .descripcion { margin-top: 15px; color: #ddd; font-size: 15px; }
-  .boton a { display: inline-block; margin-top: 20px; color: #8b5cf6; text-decoration: none; font-weight: bold; padding: 10px 15px; border: 1px solid #8b5cf6; border-radius: 8px; }
-  @media (max-width: 400px) { header { flex-direction: column; } button { width: 100%; } }
+body {
+  font-family: Arial, sans-serif;
+  background: #1e1e2f;
+  color: white;
+  margin: 0;
+  text-align: center;
+}
+header {
+  background: #2c2c3c;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+button {
+  background: #8b5cf6;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.content {
+  padding: 20px;
+}
+.video-container {
+  background: #2c2c3c;
+  border-radius: 12px;
+  padding: 15px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+video {
+  width: 100%;
+  border-radius: 8px;
+}
+.descripcion {
+  margin-top: 15px;
+  color: #ddd;
+  font-size: 15px;
+}
+.boton {
+  margin-top: 20px;
+}
+.boton a {
+  color: #8b5cf6;
+  text-decoration: none;
+  font-weight: bold;
+}
+@media(max-width: 500px){
+  .video-container { padding: 10px; }
+  header h2 { font-size: 18px; }
+}
 </style>
 </head>
 <body>
 <header>
-  <h2 id="titulo">Cargando...</h2>
-  <button onclick="window.location.href='curso.html'">Regresar</button>
+<h2 id="titulo">Cargando...</h2>
+<button onclick="window.location.href='contenido.html'">Regresar</button>
 </header>
+
 <div class="content" id="contenido">
   <div class="video-container">
     <video id="video" controls></video>
@@ -35,12 +84,12 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBOIyyPWVXWq0X3btLYM4PFaaadZuXW3pU",
   authDomain: "clientes-c459e.firebaseapp.com",
+  databaseURL: "https://clientes-c459e-default-rtdb.firebaseio.com",
   projectId: "clientes-c459e",
   storageBucket: "clientes-c459e.firebasestorage.app",
   messagingSenderId: "347844392001",
@@ -48,8 +97,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const db = getDatabase(app);
 
 const id = new URLSearchParams(window.location.search).get("id");
 const titulo = document.getElementById("titulo");
@@ -57,25 +105,31 @@ const video = document.getElementById("video");
 const descripcion = document.getElementById("descripcion");
 const boton = document.getElementById("boton");
 
-// Verificar usuario
-onAuthStateChanged(auth, user => {
-  if (!user) window.location.href = "/";
-});
+// ✅ Proteger acceso
+if (!localStorage.getItem("usuarioLogueado")) {
+  localStorage.setItem("redirectCurso", window.location.href);
+  window.location.href = "login.html";
+} else {
+  cargarContenido();
+}
 
 async function cargarContenido() {
-  const snap = await getDoc(doc(db, "contenido", id));
-  if (!snap.exists()) {
+  const dbRef = ref(db);
+  const snapshot = await get(child(dbRef, `contenido/${id}`)); // acceder al curso específico
+
+  if (!snapshot.exists()) {
     titulo.textContent = "Contenido no encontrado";
     return;
   }
-  const data = snap.data();
+
+  const data = snapshot.val();
   titulo.textContent = data.titulo || "Tutorial";
   if (data.video) video.src = data.video;
   if (data.descripcion) descripcion.textContent = data.descripcion;
-  if (data.descarga && data.boton) boton.innerHTML = `<a href="${data.descarga}" target="_blank">${data.boton}</a>`;
+  if (data.descarga && data.boton) {
+    boton.innerHTML = `<a href="${data.descarga}" target="_blank">${data.boton}</a>`;
+  }
 }
-
-cargarContenido();
 </script>
 </body>
 </html>
