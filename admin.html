@@ -235,6 +235,8 @@
           <input id="vipBoton" type="text" placeholder="Ej: Descargar / Ver" />
           <label>URL descarga / link (opcional)</label>
           <input id="vipDescarga" type="url" placeholder="https://..." />
+          <label>Categoría (opcional)</label>
+<input id="vipCategoria" type="text" placeholder="Ej: Cursos / Tutoriales / Estrategia">
           <div style="display:flex;gap:10px;margin-top:12px">
             <button id="vipAgregarBtn">Agregar contenido</button>
             <button class="secondary" onclick="limpiarVipForm()">Limpiar</button>
@@ -693,7 +695,7 @@ window.cerrarModalEdit = cerrarModalEdit;
       document.getElementById("vipDescarga").value = "";
       vipPreview.innerHTML = 'Ingresa título e imagen para previsualizar.';
     }
-
+document.getElementById("vipCategoria").value = "";
     // previsualizar mientras escribe
     document.getElementById("vipTitulo").addEventListener('input', actualizarPreview);
     document.getElementById("vipImagen").addEventListener('input', actualizarPreview);
@@ -707,12 +709,14 @@ window.cerrarModalEdit = cerrarModalEdit;
         vipPreview.innerHTML = 'Ingresa título e imagen para previsualizar.';
         return;
       }
+      const cat = document.getElementById("vipCategoria").value.trim();
+
       vipPreview.innerHTML = `
         <div style="width:100%">
           ${img ? `<img src="${escapeHtml(img)}" alt="" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px">` : ''}
           <div style="font-weight:700">${escapeHtml(t)}</div>
           <div style="color:#64748b;margin-top:6px">${escapeHtml(desc)}</div>
-        </div>
+const cat = document.getElementById("vipCategoria").value.trim(); </div>
       `;
     }
 
@@ -726,6 +730,7 @@ window.cerrarModalEdit = cerrarModalEdit;
         video: document.getElementById("vipVideo").value.trim(),
         boton: document.getElementById("vipBoton").value.trim(),
         descarga: document.getElementById("vipDescarga").value.trim(),
+        categoria: document.getElementById("vipCategoria").value.trim(),
         creadoEn: Date.now()
       };
       if(!data.titulo || !data.imagen){
@@ -759,6 +764,7 @@ window.cerrarModalEdit = cerrarModalEdit;
             <input class="vip-video" value="${escapeHtml(data.video || '')}" placeholder="URL video (opcional)">
             <input class="vip-boton" value="${escapeHtml(data.boton || '')}" placeholder="Texto botón">
             <input class="vip-descarga" value="${escapeHtml(data.descarga || '')}" placeholder="URL descarga">
+            <input class="vip-categoria" value="${escapeHtml(data.categoria || '')}" placeholder="Categoría">
             <div style="display:flex;gap:8px;margin-top:8px">
               <button class="save-btn">Guardar</button>
               <button class="delete-btn danger">Eliminar</button>
@@ -777,7 +783,9 @@ window.cerrarModalEdit = cerrarModalEdit;
           const descarga = card.querySelector('.vip-descarga').value.trim();
           if(!titulo || !imagen){ mostrarMensaje("Título e imagen obligatorios"); return; }
           try {
-            await rdbUpdate(rdbRef(rdb, `contenido/${key}`), { titulo, descripcion, imagen, video, boton, descarga });
+            await rdbUpdate(rdbRef(rdb, `contenido/${key}`), { 
+  titulo, descripcion, imagen, video, boton, descarga, categoria: card.querySelector('.vip-categoria').value.trim()
+});
             mostrarMensaje("✅ Contenido actualizado");
           } catch(err){ console.error(err); mostrarMensaje("Error actualizando"); }
         });

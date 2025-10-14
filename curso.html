@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Contenido VIP</title>
 <link rel="icon" href="3440119_ico.png" />
@@ -9,31 +9,125 @@
   <meta name="theme-color" content="#121212" />
   <link rel="icon" type="image/png" href="3440119_ico.png">
 <style>
-body { font-family: Arial,sans-serif; background:#1e1e2f; color:white; margin:0; }
-header { background:#2c2c3c; display:flex; justify-content:space-between; align-items:center; padding:10px 20px; }
-header h1 { font-size:1.5em; margin:0; }
-button { background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; }
-.container { padding:20px; }
-.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:15px; }
-.card { background:#2c2c3c; border-radius:10px; overflow:hidden; color:white; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.3);}
-.card img { width:100%; height:180px; object-fit:cover;}
-.card-content { padding:10px 15px;}
-.card-content h3 { margin:0; font-size:18px;}
-.card-content span { display:inline-block; margin-top:5px; color:#8b5cf6; font-weight:bold;}
-@media(max-width: 500px){
-  .grid { grid-template-columns: 1fr; }
+body {
+  font-family: Arial, sans-serif;
+  background:#1e1e2f;
+  color:white;
+  margin:0;
+  transition: margin-left 0.3s;
+}
+
+/* Menú hamburguesa */
+.hamburger {
+  position:fixed;
+  top:10px;
+  left:10px;
+  font-size:30px;
+  cursor:pointer;
+  z-index:1001;
+  user-select:none;
+}
+
+/* Menú lateral */
+aside {
+  width:250px;
+  background:#2c2c3c;
+  height:100vh;
+  padding-top:20px;
+  position:fixed;
+  left:-260px;
+  top:0;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  transition: left 0.3s;
+  z-index:1000;
+}
+aside.open { left:0; }
+
+aside h2 { margin-left:20px; margin-bottom:20px; }
+aside a { color:white; text-decoration:none; padding:10px 20px; display:block; }
+aside a:hover { background:#3b3b55; cursor:pointer; }
+.submenu { padding-left:20px; display:none; flex-direction:column; }
+.submenu.show { display:flex; }
+
+/* Botón cerrar sesión */
+.header-right {
+  position:fixed;
+  top:10px;
+  right:20px;
+  z-index:1001;
+}
+button {
+  background:#8b5cf6;
+  color:white;
+  border:none;
+  padding:8px 16px;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+/* Contenido principal */
+main {
+  padding: 60px 20px 20px 20px;
+  margin-left:0;
+  transition: margin-left 0.3s, opacity 0.3s;
+}
+
+/* Ocultar cursos cuando se abre el menú */
+main.oculto {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Tarjetas de cursos */
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(300px,1fr));
+  gap:15px;
+}
+.card {
+  background:#2c2c3c;
+  border-radius:10px;
+  overflow:hidden;
+  color:white;
+  text-decoration:none;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.card img { width:100%; height:180px; object-fit:cover; }
+.card-content { padding:10px 15px; }
+.card-content h3 { margin:0; font-size:18px; }
+.card-content span { display:inline-block; margin-top:5px; color:#8b5cf6; font-weight:bold; }
+.card-content .categoria { color:#fbbf24; margin-top:5px; font-weight:bold; }
+
+@media(max-width:800px){
+  aside { width:200px; }
 }
 </style>
 </head>
 <body>
-<header>
-<h1>Contenido VIP</h1>
-<button onclick="logout()">Cerrar sesión</button>
-</header>
 
-<div class="container">
-  <div class="grid" id="gridCursos"></div>
+<!-- Botón hamburguesa -->
+<div class="hamburger" onclick="toggleMenu()">=</div>
+
+<!-- Menú lateral -->
+<aside id="menu">
+  <h2>Contenido VIP</h2>
+  <a id="inicioLink">Inicio</a>
+  <a onclick="toggleSubmenu()">Categorías ▾</a>
+  <div class="submenu" id="submenuCategorias"></div>
+  <a href="#" target="_blank">Perfil</a>
+</aside>
+
+<!-- Botón cerrar sesión -->
+<div class="header-right">
+  <button onclick="logout()">Cerrar sesión</button>
 </div>
+
+<!-- Contenido principal -->
+<main>
+  <div class="grid" id="gridCursos"></div>
+</main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -52,8 +146,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const grid = document.getElementById("gridCursos");
+const submenu = document.getElementById("submenuCategorias");
+const menu = document.getElementById("menu");
 
-// ✅ Proteger acceso
+let allCursos = {};
+
 if (!localStorage.getItem("usuarioLogueado")) {
   localStorage.setItem("redirectCurso", window.location.href);
   window.location.href = "index";
@@ -63,16 +160,26 @@ if (!localStorage.getItem("usuarioLogueado")) {
 
 async function cargarCursos() {
   const dbRef = ref(db);
-  const snapshot = await get(child(dbRef, 'contenido')); // Aquí 'contenido' es tu nodo
+  const snapshot = await get(child(dbRef, 'contenido'));
 
   if (!snapshot.exists()) {
     grid.innerHTML = "<p>No hay contenido disponible.</p>";
     return;
   }
 
-  const data = snapshot.val();
-  Object.keys(data).forEach(key => {
-    const curso = data[key];
+  allCursos = snapshot.val();
+
+  renderCursos(allCursos); // mostrar todos al inicio
+  generarCategorias(allCursos);
+
+  document.getElementById("inicioLink").onclick = () => renderCursos(allCursos);
+}
+
+function renderCursos(cursos, categoriaFiltro='') {
+  grid.innerHTML = '';
+  Object.keys(cursos).forEach(key => {
+    const curso = cursos[key];
+    if(categoriaFiltro && curso.categoria !== categoriaFiltro) return;
     const card = document.createElement("a");
     card.href = `video.html?id=${key}`;
     card.className = "card";
@@ -81,18 +188,54 @@ async function cargarCursos() {
       <div class="card-content">
         <h3>${curso.titulo}</h3>
         <span>${curso.boton || "Ver ahora"}</span>
+        ${curso.categoria ? `<div class="categoria">${curso.categoria}</div>` : ''}
       </div>
     `;
     grid.appendChild(card);
   });
 }
 
-// Cerrar sesión
+function generarCategorias(cursos) {
+  const categorias = new Set();
+  Object.values(cursos).forEach(c => { if(c.categoria) categorias.add(c.categoria); });
+  submenu.innerHTML = '';
+  categorias.forEach(cat => {
+    const a = document.createElement("a");
+    a.href="#";
+    a.textContent = cat;
+    a.onclick = ()=>filterCategory(cat);
+    submenu.appendChild(a);
+  });
+}
+
+function filterCategory(cat='') {
+  renderCursos(allCursos, cat);
+}
+
+function toggleSubmenu() {
+  submenu.classList.toggle("show");
+}
+
+function toggleMenu() {
+  const main = document.querySelector('main');
+  menu.classList.toggle("open");
+  if(menu.classList.contains('open')){
+    main.classList.add('oculto'); // oculta cursos
+  } else {
+    main.classList.remove('oculto'); // muestra cursos
+  }
+}
+
 function logout() {
   localStorage.removeItem("usuarioLogueado");
   window.location.href = "index";
 }
+
+window.toggleSubmenu = toggleSubmenu;
+window.filterCategory = filterCategory;
+window.toggleMenu = toggleMenu;
 window.logout = logout;
 </script>
+
 </body>
 </html>
