@@ -56,7 +56,7 @@ const grid = document.getElementById("gridCursos");
 // ✅ Proteger acceso
 if (!localStorage.getItem("usuarioLogueado")) {
   localStorage.setItem("redirectCurso", window.location.href);
-  window.location.href = "login.html";
+  window.location.href = "index";
 } else {
   cargarCursos();
 }
@@ -90,7 +90,7 @@ async function cargarCursos() {
 // Cerrar sesión
 function logout() {
   localStorage.removeItem("usuarioLogueado");
-  window.location.href = "login.html";
+  window.location.href = "index";
 }
 window.logout = logout;
 </script>
