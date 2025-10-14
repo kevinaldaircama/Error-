@@ -71,7 +71,7 @@ video {
 <body>
 <header>
 <h2 id="titulo">Cargando...</h2>
-<button onclick="window.location.href='contenido.html'">Regresar</button>
+<button onclick="window.location.href='curso'">Regresar</button>
 </header>
 
 <div class="content" id="contenido">
@@ -108,7 +108,7 @@ const boton = document.getElementById("boton");
 // ✅ Proteger acceso
 if (!localStorage.getItem("usuarioLogueado")) {
   localStorage.setItem("redirectCurso", window.location.href);
-  window.location.href = "login.html";
+  window.location.href = "index";
 } else {
   cargarContenido();
 }
