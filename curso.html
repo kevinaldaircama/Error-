@@ -153,7 +153,7 @@ let allCursos = {};
 
 if (!localStorage.getItem("usuarioLogueado")) {
   localStorage.setItem("redirectCurso", window.location.href);
-  window.location.href = "index";
+  window.location.href = "login";
 } else {
   cargarCursos();
 }
@@ -228,7 +228,7 @@ function toggleMenu() {
 
 function logout() {
   localStorage.removeItem("usuarioLogueado");
-  window.location.href = "index";
+  window.location.href = "login";
 }
 
 window.toggleSubmenu = toggleSubmenu;
