@@ -108,7 +108,7 @@ const boton = document.getElementById("boton");
 // ✅ Proteger acceso
 if (!localStorage.getItem("usuarioLogueado")) {
   localStorage.setItem("redirectCurso", window.location.href);
-  window.location.href = "index";
+  window.location.href = "login";
 } else {
   cargarContenido();
 }
