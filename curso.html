@@ -4,131 +4,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Contenido VIP</title>
+
 <link rel="icon" href="3440119_ico.png" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#121212" />
-  <link rel="icon" type="image/png" href="3440119_ico.png">
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#121212" />
+
 <style>
+/* ====== ESTILOS ====== */
+
+html { scroll-behavior: smooth; }
+
 body {
-  font-family: Arial, sans-serif;
-  background:#1e1e2f;
-  color:white;
-  margin:0;
-  transition: margin-left 0.3s;
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #202033, #11111a 70%);
+  color: white;
+  margin: 0;
+  overflow-x: hidden;
 }
 
-/* Menú hamburguesa */
+/* Botón hamburguesa */
 .hamburger {
-  position:fixed;
-  top:10px;
-  left:10px;
-  font-size:30px;
-  cursor:pointer;
-  z-index:1001;
-  user-select:none;
+  font-size: 30px;
+  padding: 10px 20px;
+  cursor: pointer;
+  background: #222;
+  color: #fff;
+  border: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1002;
 }
 
 /* Menú lateral */
-aside {
-  width:250px;
-  background:#2c2c3c;
-  height:100vh;
-  padding-top:20px;
-  position:fixed;
-  left:-260px;
-  top:0;
-  display:flex;
-  flex-direction:column;
-  overflow-y:auto;
-  transition: left 0.3s;
-  z-index:1000;
+#menu {
+  position: fixed;
+  left: -260px;
+  top: 0;
+  width: 250px;
+  height: 100vh;
+  background: #333;
+  color: white;
+  padding-top: 20px;
+  transition: 0.3s ease;
+  z-index: 1001;
 }
-aside.open { left:0; }
 
-aside h2 { margin-left:20px; margin-bottom:20px; }
-aside a { color:white; text-decoration:none; padding:10px 20px; display:block; }
-aside a:hover { background:#3b3b55; cursor:pointer; }
-.submenu { padding-left:20px; display:none; flex-direction:column; }
-.submenu.show { display:flex; }
+#menu.open { left: 0; }
 
-/* Botón cerrar sesión */
+/* Botón X */
+.close-btn {
+  font-size: 28px;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 200px;
+}
+
+/* Links */
+#menu a {
+  display: block;
+  padding: 15px 20px;
+  font-size: 18px;
+  color: white;
+  text-decoration: none;
+}
+#menu a:hover { background: #444; }
+
+/* Submenú */
+.submenu {
+  display: none;
+  padding-left: 30px;
+  flex-direction: column;
+  animation: fadeIn .3s;
+}
+.submenu.show { display: flex; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Logout */
 .header-right {
-  position:fixed;
-  top:10px;
-  right:20px;
-  z-index:1001;
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  z-index: 1001;
 }
+
 button {
-  background:#8b5cf6;
-  color:white;
-  border:none;
-  padding:8px 16px;
-  border-radius:5px;
-  cursor:pointer;
+  background: linear-gradient(135deg, #7b2cff, #b065ff);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
 }
 
-/* Contenido principal */
+/* Contenido */
 main {
-  padding: 60px 20px 20px 20px;
-  margin-left:0;
-  transition: margin-left 0.3s, opacity 0.3s;
+  padding: 70px 20px 30px 20px;
+  transition: opacity .3s ease;
 }
 
-/* Ocultar cursos cuando se abre el menú */
-main.oculto {
-  opacity: 0;
-  pointer-events: none;
-}
+main.oculto { opacity: 0.1; pointer-events: none; }
 
-/* Tarjetas de cursos */
+/* Grid */
 .grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(300px,1fr));
-  gap:15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
 }
-.card {
-  background:#2c2c3c;
-  border-radius:10px;
-  overflow:hidden;
-  color:white;
-  text-decoration:none;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
-}
-.card img { width:100%; height:180px; object-fit:cover; }
-.card-content { padding:10px 15px; }
-.card-content h3 { margin:0; font-size:18px; }
-.card-content span { display:inline-block; margin-top:5px; color:#8b5cf6; font-weight:bold; }
-.card-content .categoria { color:#fbbf24; margin-top:5px; font-weight:bold; }
 
-@media(max-width:800px){
-  aside { width:200px; }
+/* Tarjetas */
+.card {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: white;
+  box-shadow: 0 5px 20px rgba(0,0,0,.4);
+  transition: .3s;
 }
+.card:hover {
+  transform: translateY(-5px);
+}
+.card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+}
+.card-content { padding: 18px 20px; }
+.card-content h3 { margin: 0; font-size: 18px; }
+.card-content span { color: #a688ff; font-weight: bold; }
+.card-content .categoria { color: #ffe083; font-weight: bold; margin-top: 6px; }
+
 </style>
 </head>
 <body>
 
-<!-- Botón hamburguesa -->
-<div class="hamburger" onclick="toggleMenu()">=</div>
+<button class="hamburger" onclick="toggleMenu()">=</button>
 
-<!-- Menú lateral -->
+<!-- MENÚ LATERAL -->
 <aside id="menu">
-  <h2>Contenido VIP</h2>
+  <h2>menu inicial</h2></h2>
   <a id="inicioLink">Inicio</a>
-  <a onclick="toggleSubmenu()">Categorías ▾</a>
+  <a onclick="toggleSubmenu()">Categorías ⤵️</a>
   <div class="submenu" id="submenuCategorias"></div>
-  <a href="#" target="_blank">Perfil</a>
+  <a href="#">Soporte / Comunidad</a>
+  <a href="#">Información</a>
+  <a href="#">Perfil</a>
 </aside>
 
-<!-- Botón cerrar sesión -->
+<!-- BOTÓN CERRAR SESIÓN -->
 <div class="header-right">
   <button onclick="logout()">Cerrar sesión</button>
 </div>
 
-<!-- Contenido principal -->
+<!-- CONTENIDO PRINCIPAL -->
 <main>
   <div class="grid" id="gridCursos"></div>
 </main>
 
+<!-- FIREBASE + JS -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -145,12 +187,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
 const grid = document.getElementById("gridCursos");
 const submenu = document.getElementById("submenuCategorias");
-const menu = document.getElementById("menu");
-
 let allCursos = {};
 
+// LOGIN
 if (!localStorage.getItem("usuarioLogueado")) {
   localStorage.setItem("redirectCurso", window.location.href);
   window.location.href = "login";
@@ -158,83 +200,66 @@ if (!localStorage.getItem("usuarioLogueado")) {
   cargarCursos();
 }
 
+/* ==================
+      FIREBASE
+================== */
 async function cargarCursos() {
-  const dbRef = ref(db);
-  const snapshot = await get(child(dbRef, 'contenido'));
-
-  if (!snapshot.exists()) {
-    grid.innerHTML = "<p>No hay contenido disponible.</p>";
-    return;
-  }
+  const snapshot = await get(child(ref(db), 'contenido'));
+  if (!snapshot.exists()) return;
 
   allCursos = snapshot.val();
-
-  renderCursos(allCursos); // mostrar todos al inicio
+  renderCursos(allCursos);
   generarCategorias(allCursos);
 
   document.getElementById("inicioLink").onclick = () => renderCursos(allCursos);
 }
 
-function renderCursos(cursos, categoriaFiltro='') {
+function renderCursos(cursos, categoriaFiltro = '') {
   grid.innerHTML = '';
   Object.keys(cursos).forEach(key => {
     const curso = cursos[key];
-    if(categoriaFiltro && curso.categoria !== categoriaFiltro) return;
-    const card = document.createElement("a");
-    card.href = `video.html?id=${key}`;
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${curso.imagen}" alt="${curso.titulo}">
-      <div class="card-content">
-        <h3>${curso.titulo}</h3>
-        <span>${curso.boton || "Ver ahora"}</span>
-        ${curso.categoria ? `<div class="categoria">${curso.categoria}</div>` : ''}
-      </div>
-    `;
-    grid.appendChild(card);
+    if (categoriaFiltro && curso.categoria !== categoriaFiltro) return;
+
+    grid.innerHTML += `
+      <a href="video.html?id=${key}" class="card">
+        <img src="${curso.imagen}">
+        <div class="card-content">
+          <h3>${curso.titulo}</h3>
+          
+          ${curso.categoria ? `<div class="categoria">${curso.categoria}</div>` : ""}
+        </div>
+      </a>`;
   });
 }
 
 function generarCategorias(cursos) {
-  const categorias = new Set();
-  Object.values(cursos).forEach(c => { if(c.categoria) categorias.add(c.categoria); });
   submenu.innerHTML = '';
+  const categorias = [...new Set(Object.values(cursos).map(c => c.categoria))];
+
   categorias.forEach(cat => {
-    const a = document.createElement("a");
-    a.href="#";
-    a.textContent = cat;
-    a.onclick = ()=>filterCategory(cat);
-    submenu.appendChild(a);
+    const item = document.createElement("a");
+    item.textContent = cat;
+    item.onclick = () => renderCursos(allCursos, cat);
+    submenu.appendChild(item);
   });
 }
 
-function filterCategory(cat='') {
-  renderCursos(allCursos, cat);
-}
+/* ==================
+   HACER FUNCIONES GLOBALES
+================== */
+window.toggleMenu = function () {
+  document.getElementById("menu").classList.toggle("open");
+};
 
-function toggleSubmenu() {
+window.toggleSubmenu = function () {
   submenu.classList.toggle("show");
-}
+};
 
-function toggleMenu() {
-  const main = document.querySelector('main');
-  menu.classList.toggle("open");
-  if(menu.classList.contains('open')){
-    main.classList.add('oculto'); // oculta cursos
-  } else {
-    main.classList.remove('oculto'); // muestra cursos
-  }
-}
-
-function logout() {
+window.logout = function () {
   localStorage.removeItem("usuarioLogueado");
   window.location.href = "login";
-}
+};
 
-window.toggleSubmenu = toggleSubmenu;
-window.filterCategory = filterCategory;
-window.toggleMenu = toggleMenu;
-window.logout = logout;
 </script>
 
 </body>

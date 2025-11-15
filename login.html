@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Login Usuario</title>
-  <link rel="icon" href="3440119_ico.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
- <link rel="icon" href="3440119_ico.png" />
-  <link rel="manifest" href="manifest.json" />
+
+  <!-- Ícono -->
+  <link rel="icon" type="image/png" href="3440119_ico.png" />
+
+  <!-- Adaptación móvil -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#121212" />
-  <link rel="icon" type="image/png" href="3440119_ico.png">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -29,97 +34,208 @@
     const db = getFirestore(app);
 
     async function loginUsuario() {
-      const user = document.getElementById("loginUser").value.trim();
-      const pass = document.getElementById("loginPass").value.trim();
+      const user = loginUser.value.trim();
+      const pass = loginPass.value.trim();
 
       if (!user || !pass) {
-        alert("⚠️ Ingresa usuario y contraseña.");
-        return;
+        return mostrarAlerta("⚠️ Ingresa usuario y contraseña.", "error");
       }
 
-      const ref = doc(db, "usuarios", user);
-      const snap = await getDoc(ref);
+      // Mostrar loader
+      botonLogin.disabled = true;
+      botonLogin.innerText = "Verificando...";
 
-      if (!snap.exists()) {
-        alert("❌ Usuario no encontrado o fue eliminado.");
-        return;
+      try {
+        const ref = doc(db, "usuarios", user);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+          mostrarAlerta("❌ Usuario no encontrado.", "error");
+          resetBtn();
+          return;
+        }
+
+        const data = snap.data();
+
+        if (data.pass !== pass) {
+          mostrarAlerta("❌ Contraseña incorrecta.", "error");
+          resetBtn();
+          return;
+        }
+
+        if (Date.now() > data.expira) {
+          mostrarAlerta("⛔ Tu cuenta ha expirado.", "error");
+          resetBtn();
+          return;
+        }
+
+        // Guardar login
+        localStorage.setItem("usuarioLogueado", user);
+
+        const redirect = localStorage.getItem("redirectCurso") || "curso.html";
+        localStorage.removeItem("redirectCurso");
+
+        window.location.href = redirect;
+
+      } catch (e) {
+        mostrarAlerta("⚠️ Error de conexión con el servidor.", "error");
+        console.error(e);
       }
 
-      const data = snap.data();
+      resetBtn();
+    }
 
-      if (data.pass !== pass) {
-        alert("❌ Contraseña incorrecta o cambiada.");
-        return;
-      }
+    function resetBtn() {
+      botonLogin.disabled = false;
+      botonLogin.innerText = "Entrar";
+    }
 
-      const ahora = Date.now();
-      if (ahora > data.expira) {
-        alert("⛔ Tu cuenta ha expirado.");
-        return;
-      }
+    // Mostrar alerta bonita
+    function mostrarAlerta(texto, tipo = "info") {
+      const alert = document.getElementById("alerta");
+      alert.innerText = texto;
+      alert.className = tipo;
+      alert.style.display = "block";
 
-      // ✅ Guardar usuario logueado en localStorage
-      localStorage.setItem("usuarioLogueado", user);
-
-      // Redirigir a la página que intentaba abrir, si existe
-      const redirect = localStorage.getItem("redirectCurso") || "curso.html";
-      localStorage.removeItem("redirectCurso");
-      window.location.href = redirect;
+      setTimeout(() => {
+        alert.style.opacity = "0";
+        setTimeout(() => {
+          alert.style.display = "none";
+          alert.style.opacity = "1";
+        }, 300);
+      }, 2500);
     }
 
     window.loginUsuario = loginUsuario;
   </script>
 
+  <!-- CSS Mejorado -->
   <style>
+    /* ===== ESTILO GENERAL ===== */
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #007bff, #00c6ff);
-      height: 100vh;
       margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #007bff, #00b4ff);
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
     }
+
+    /* ===== TARJETA LOGIN ===== */
     .login-box {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
       width: 90%;
-      max-width: 350px;
+      max-width: 360px;
+      padding: 35px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
       text-align: center;
+      animation: fadeIn 0.6s ease;
     }
-    h2 { color: #333; margin-bottom: 20px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .title {
+      color: white;
+      font-size: 24px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    /* ===== INPUTS ===== */
+    .input-box {
+      position: relative;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
     input {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
       font-size: 15px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.8);
     }
-    input:focus { border-color: #007bff; outline: none; }
+
+    /* Botón mostrar contraseña */
+    .toggle-pass {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.6;
+      user-select: none;
+    }
+
+    .toggle-pass:hover {
+      opacity: 1;
+    }
+
+    /* ===== BOTÓN ===== */
     button {
       width: 100%;
-      padding: 12px;
-      margin-top: 10px;
+      padding: 14px;
       border: none;
-      border-radius: 8px;
-      background: #007bff;
+      border-radius: 12px;
+      background: #0047ff;
       color: white;
       font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background .3s;
+      transition: transform 0.2s, background 0.3s;
     }
-    button:hover { background: #0056b3; }
+
+    button:hover {
+      background: #0036cc;
+      transform: scale(1.03);
+    }
+
+    button:disabled {
+      background: #7aa7ff;
+      cursor: not-allowed;
+    }
+
+    /* ===== ALERTAS ===== */
+    #alerta {
+      display: none;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: opacity 0.3s;
+    }
+
+    .error { background: #ff3b3b; color: white; }
+    .info { background: #005eff; color: white; }
+
   </style>
 </head>
 <body>
+
   <div class="login-box">
-    <h2>Iniciar Sesión</h2>
-    <input id="loginUser" placeholder="Usuario">
-    <input id="loginPass" type="password" placeholder="Contraseña">
-    <button onclick="loginUsuario()">Entrar</button>
+    <div class="title">Iniciar Sesión</div>
+
+    <div id="alerta"></div>
+
+    <div class="input-box">
+      <input id="loginUser" placeholder="Usuario" autocomplete="off">
+    </div>
+
+    <div class="input-box">
+      <input id="loginPass" type="password" placeholder="Contraseña">
+      <span class="toggle-pass" onclick="loginPass.type = loginPass.type === 'password' ? 'text' : 'password'">👁️</span>
+    </div>
+
+    <button id="botonLogin" onclick="loginUsuario()">Entrar</button>
   </div>
+
 </body>
 </html>
