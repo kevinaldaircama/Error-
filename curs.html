@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Subir Video y Generar Link</title>
+
+<style>
+  body {
+    background:#121212;
+    color:white;
+    font-family:Arial, sans-serif;
+    text-align:center;
+    margin:0;
+    padding:20px;
+  }
+  h2 { margin-top:20px; }
+  .box {
+    background:#1e1e1e;
+    padding:20px;
+    border-radius:12px;
+    max-width:450px;
+    margin:20px auto;
+    box-shadow:0 0 10px rgba(0,0,0,0.5);
+  }
+  input[type="file"] {
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    background:#222;
+    border-radius:8px;
+    border:1px solid #444;
+    color:white;
+  }
+  button {
+    width:100%;
+    padding:12px;
+    background:#6d5dfc;
+    border:none;
+    border-radius:8px;
+    margin-top:15px;
+    font-size:16px;
+    cursor:pointer;
+    color:white;
+  }
+  button:hover { background:#5848e0; }
+  #linkSalida {
+    margin-top:20px;
+    background:#222;
+    padding:15px;
+    border-radius:8px;
+    word-break:break-all;
+  }
+</style>
+</head>
+
+<body>
+<h2>Subir Video y Generar Link Público</h2>
+
+<div class="box">
+  <input type="file" id="videoFile" accept="video/mp4,video/*"/>
+  <button onclick="subirVideo()">Subir Video</button>
+  <div id="estado"></div>
+  <div id="linkSalida"></div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getStorage, ref, uploadBytesResumable, getDownloadURL } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBOIyyPWVXWq0X3btLYM4PFaaadZuXW3pU",
+    authDomain: "clientes-c459e.firebaseapp.com",
+    projectId: "clientes-c459e",
+    storageBucket: "clientes-c459e.appspot.com",
+    messagingSenderId: "347844392001",
+    appId: "1:347844392001:web:9e0a836d313959d0e742c0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const storage = getStorage(app);
+
+  window.subirVideo = function(){
+    const file = document.getElementById("videoFile").files[0];
+    const estado = document.getElementById("estado");
+    const salida = document.getElementById("linkSalida");
+
+    if(!file){
+      estado.textContent = "⚠️ Selecciona un video primero.";
+      return;
+    }
+
+    const nombre = "videos/" + Date.now() + "_" + file.name;
+    const storageRef = ref(storage, nombre);
+
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    estado.textContent = "Subiendo video...";
+
+    uploadTask.on("state_changed", 
+      (snap)=>{
+        let progreso = Math.floor((snap.bytesTransferred / snap.totalBytes) * 100);
+        estado.textContent = "Subiendo: " + progreso + "%";
+      },
+      (error)=>{
+        estado.textContent = "❌ Error al subir: " + error;
+      },
+      ()=>{
+        getDownloadURL(uploadTask.snapshot.ref).then((url)=>{
+          salida.innerHTML = `
+            <h3>✔ Video Subido</h3>
+            <p>Comparte este link:</p>
+            <div>${url}</div>
+            <br>
+            <video src="${url}" controls width="100%" style="border-radius:8px;"></video>
+          `;
+          estado.textContent = "";
+        });
+      }
+    );
+  }
+</script>
+
+</body>
+</html>
